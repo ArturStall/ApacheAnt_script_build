@@ -1,0 +1,134 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project name="build_script" default="pack">
+
+	<property name="sourceFolder" value="test_files" />
+	<property name="inFolder" value="in" />
+	<property name="tempFolder" value="temp" />
+	<property name="outFolder" value="out" />
+	<property name="outputFile" value="output.zip" />
+
+	<target name="currentTime">
+		<tstamp>
+			<format property="curTime" pattern="HH:mm:ss:sss" />
+		</tstamp>
+		<echo message="${text} - ${curTime}" />
+	</target>
+
+	<target name="createFolders">
+		<record name="log.txt" action="start" />
+		<antcall target="currentTime">
+			<param name="text" value="Start create folders in,temp,out" />
+		</antcall>
+		<mkdir dir="${inFolder}" />
+		<mkdir dir="${tempFolder}" />
+		<mkdir dir="${outFolder}" />
+		<antcall target="currentTime">
+			<param name="text" value="End operation" />
+		</antcall>
+		<record name="log.txt" action="stop" />
+	</target>
+
+	<target name="clean" depends="createFolders">
+		<record name="log.txt" action="start" />
+		<antcall target="currentTime">
+			<param name="text" value="Start clean temp folder" />
+		</antcall>
+		<delete>
+			<fileset dir="${tempFolder}" />
+		</delete>
+		<antcall target="currentTime">
+			<param name="text" value="End operation" />
+		</antcall>
+		<record name="log.txt" action="stop" />
+	</target>
+
+	<target name="init" depends="clean">
+		<record name="log.txt" action="start" />
+		<antcall target="currentTime">
+			<param name="text" value="Copy test files to in folder" />
+		</antcall>
+		<copy todir="${inFolder}">
+			<fileset dir="${sourceFolder}">
+				<include name="*.xhtml" />
+				<include name="*.html" />
+				<include name="*.xml" />
+				<include name="*.zip" />
+				<include name="*.png" />
+			</fileset>
+		</copy>
+		<antcall target="currentTime">
+			<param name="text" value="End operation" />
+		</antcall>
+		<record name="log.txt" action="stop" />
+	</target>
+
+	<target name="copyInToTemp" depends="init">
+		<record name="log.txt" action="start" />
+		<antcall target="currentTime">
+			<param name="text" value="Start copy files from in to temp folder" />
+		</antcall>
+		<copy todir="${tempFolder}">
+			<fileset dir="${inFolder}">
+				<include name="*.xhtml" />
+				<include name="*.html" />
+				<include name="*.xml" />
+				<include name="*.zip" />
+			</fileset>
+		</copy>
+		<antcall target="currentTime">
+			<param name="text" value="End operation" />
+		</antcall>
+		<record name="log.txt" action="stop" />
+	</target>
+
+	<target name="unzip" depends="copyInToTemp">
+		<record name="log.txt" action="start" />
+		<antcall target="currentTime">
+			<param name="text" value="Start unzip zip files fo temp folder" />
+		</antcall>
+		<unzip dest="${tempFolder}">
+			<fileset dir="${inFolder}">
+				<include name="*.zip" />
+			</fileset>
+			<mapper type="flatten" />
+			<patternset includes="**/*.xml */*.xhtml */*.html **/*.png" />
+		</unzip>
+		<antcall target="currentTime">
+			<param name="text" value="End operation" />
+		</antcall>
+		<record name="log.txt" action="stop" />
+	</target>
+
+	<target name="deleteZips" depends="unzip">
+		<record name="log.txt" action="start" />
+		<antcall target="currentTime">
+			<param name="text" value="Start delete *.zip files in temp folder" />
+		</antcall>
+		<delete>
+			<fileset dir="${tempFolder}" includes="*.zip" />
+		</delete>
+		<antcall target="currentTime">
+			<param name="text" value="End operation" />
+		</antcall>
+		<record name="log.txt" action="stop" />
+	</target>
+
+	<target name="pack" depends="deleteZips">
+		<record name="log.txt" action="start" />
+		<antcall target="currentTime">
+			<param name="text" value="Start packing files from temp folder to out folder" />
+		</antcall>
+		<zip destfile="${outFolder}/${outputFile}">
+			<fileset dir="${tempFolder}">
+				<include name="*.xhtml" />
+				<include name="*.html" />
+				<include name="*.xml" />
+			</fileset>
+		</zip>
+		<antcall target="currentTime">
+			<param name="text" value="End operation" />
+		</antcall>
+		<record name="log.txt" action="stop" />
+	</target>
+
+</project>
